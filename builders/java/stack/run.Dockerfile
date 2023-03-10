@@ -15,5 +15,14 @@
 ARG from_image
 FROM ${from_image}
 
+ARG java_agent_version=8.14.0
+
+ADD https://dlcdn.apache.org/skywalking/java-agent/${java_agent_version}/apache-skywalking-java-agent-${java_agent_version}.tgz /
+
+RUN tar xzf apache-skywalking-java-agent-${java_agent_version}.tgz -C /usr/local/ && \
+  rm -rf apache-skywalking-java-agent-${java_agent_version}.tgz && \
+  chown -R ${cnb_uid}:${cnb_gid} /usr/local/skywalking-agent
+
 ENV PORT 8080
 USER cnb
+

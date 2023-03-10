@@ -1,0 +1,21 @@
+api = "0.7"
+
+[buildpack]
+id = "openfunction.java.skywalking"
+version = "1.0.0"
+name = "Java - Skywalking"
+
+[[stacks]]
+id = "openfunction"
+
+[[stacks]]
+id = "openfunction.java11"
+
+[[stacks]]
+id = "openfunction.java16"
+
+[[stacks]]
+id = "openfunction.java17"
+
+[[stacks]]
+id = "openfunction.java18"

@@ -73,7 +73,14 @@ func buildFn(ctx *gcp.Context) error {
 	launcherSource := filepath.Join(ctx.BuildpackRoot(), "launch.sh")
 	launcherTarget := filepath.Join(layer.Path, "launch.sh")
 	createLauncher(ctx, launcherSource, launcherTarget)
-	ctx.AddDefaultWebProcess([]string{launcherTarget, "java", "-jar", filepath.Join(layer.Path, "functions-framework.jar")}, true)
+	cmd := []string{launcherTarget, "java"}
+	if disable, ok := os.LookupEnv(env.DisableSkywalking); !ok || disable == "true" {
+		if arg, _ := os.LookupEnv(env.SkywalkingJavaAgentArg); arg != "" {
+			cmd = append(cmd, arg)
+		}
+	}
+	cmd = append(cmd, "-jar", filepath.Join(layer.Path, "functions-framework.jar"))
+	ctx.AddDefaultWebProcess(cmd, true)
 
 	return nil
 }

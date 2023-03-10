@@ -119,6 +119,20 @@ const (
 
 	// FunctionClasspath is the classpath for java where to load the function jar.
 	FunctionClasspath = "FUNCTION_CLASSPATH"
+
+	// DisableSkywalking set to true will delete the skywalking java agent,
+	// and the application will run without skywalking.
+	DisableSkywalking = "SW_DISABLE"
+	// SkywalkingJavaAgentVersion is the version of skywalking java agent.
+	// The default is 8.14.0, support version is 8.8.0+.
+	// If another version is set, it will be download from https://dlcdn.apache.org/skywalking/java-agent/.
+	SkywalkingJavaAgentVersion = "SW_JAVA_AGENT_VERSION"
+	// SkywalkingJavaAgentURL is the url of the skywalking java agent.
+	// The url must point to a tar file.
+	SkywalkingJavaAgentURL = "SW_JAVA_AGENT_URL"
+	// SkywalkingJavaAgentPath is the relative path of the skywalking-agent.jar.
+	SkywalkingJavaAgentPath = "SW_JAVA_AGENT_PATH"
+	SkywalkingJavaAgentArg  = "SW_JAVA_AGENT_ARG"
 )
 
 // IsDebugMode returns true if the buildpack debug mode is enabled.
