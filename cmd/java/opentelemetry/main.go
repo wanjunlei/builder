@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Implements java/maven buildpack.
-// The maven buildpack builds Maven applications.
 package main
 
 import (
@@ -26,10 +24,10 @@ import (
 )
 
 const (
-	layerName                         = "skywalking"
-	defaultSkywalkingJavaAgentVersion = "8.14.0"
-	defaultSkywalkingJavaAgentURL     = "https://archive.apache.org/dist/skywalking/java-agent/%[1]s/apache-skywalking-java-agent-%[1]s.tgz"
-	defaultSkywalkingJavaAgentPath    = "/usr/local/skywalking-agent/"
+	layerName                            = "opentelemetry"
+	defaultOpentelemetryJavaAgentVersion = "1.23.0"
+	defaultOpentelemetryJavaAgentURL     = "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/%[1]s/opentelemetry-javaagent.jar"
+	defaultOpentelemetryJavaAgentPath    = "/usr/local/opentelemetry/"
 )
 
 func main() {
@@ -44,20 +42,20 @@ func buildFn(ctx *gcp.Context) error {
 	layer := ctx.Layer(layerName)
 	layer.Launch = true
 
-	if disable, ok := os.LookupEnv(env.DisableSkywalking); ok && disable == "true" {
-		ctx.Logf("Delete skywalking java agent")
+	if disable, ok := os.LookupEnv(env.DisableOpentelemetry); ok && disable == "true" {
+		ctx.Logf("Delete opentelemetry java agent")
 		deleteDefaultAgent(ctx)
 		return nil
 	}
 
-	if url, ok := os.LookupEnv(env.SkywalkingJavaAgentURL); ok && len(url) > 0 {
+	if url, ok := os.LookupEnv(env.OpentelemetryJavaAgentURL); ok && len(url) > 0 {
 		if err := downloadAgent(ctx, layer, url); err != nil {
 			return err
 		}
 		setJavaAgentArg(ctx, layer)
-	} else if version, ok := os.LookupEnv(env.SkywalkingJavaAgentVersion); ok {
-		if version != defaultSkywalkingJavaAgentVersion {
-			if err := downloadAgent(ctx, layer, fmt.Sprintf(defaultSkywalkingJavaAgentURL, version)); err != nil {
+	} else if version, ok := os.LookupEnv(env.OpentelemetryJavaAgentVersion); ok {
+		if version != defaultOpentelemetryJavaAgentVersion {
+			if err := downloadAgent(ctx, layer, fmt.Sprintf(defaultOpentelemetryJavaAgentURL, version)); err != nil {
 				return err
 			}
 			setJavaAgentArg(ctx, layer)
@@ -70,21 +68,27 @@ func buildFn(ctx *gcp.Context) error {
 }
 
 func setJavaAgentArg(ctx *gcp.Context, layer *libcnb.Layer) {
-	path := defaultSkywalkingJavaAgentPath
+	path := defaultOpentelemetryJavaAgentPath
 	if layer != nil {
 		path = layer.Path
 	}
-	ctx.Setenv(env.JavaAgentPath, path+"skywalking-agent.jar")
+
+	agentpath := os.Getenv(env.JavaAgentPath)
+	if agentpath != "" {
+		ctx.Setenv(env.JavaAgentPath, agentpath+","+path+"opentelemetry-javaagent.jar")
+	} else {
+		ctx.Setenv(env.JavaAgentPath, path+"opentelemetry-javaagent.jar")
+	}
 }
 
 func deleteDefaultAgent(ctx *gcp.Context) {
-	command := fmt.Sprintf("rm -rf %s", defaultSkywalkingJavaAgentPath)
+	command := fmt.Sprintf("rm -rf %s", defaultOpentelemetryJavaAgentPath)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
 }
 
 func downloadAgent(ctx *gcp.Context, layer *libcnb.Layer, url string) error {
 	if code := ctx.HTTPStatus(url); code != http.StatusOK {
-		return gcp.UserErrorf("Skywalking java agent does not exist at %s (status %d).", url, code)
+		return gcp.UserErrorf("opentelemetry java agent does not exist at %s (status %d).", url, code)
 	}
 	command := fmt.Sprintf("curl --fail --show-error --silent --location --retry 3 %s | tar xz --directory %s", url, layer.Path)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)

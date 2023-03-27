@@ -31,8 +31,8 @@ import (
 const (
 	// TODO(b/151198698): Automate Maven version updates.
 	m2Layer             = "m2"
-	defaultMavenVersion = "3.8.5"
-	mavenURL            = "https://downloads.apache.org/maven/maven-3/%[1]s/binaries/apache-maven-%[1]s-bin.tar.gz"
+	defaultMavenVersion = "3.8.7"
+	defaultMavenURL     = "https://archive.apache.org/dist/maven/maven-%[1]s/%[2]s/binaries/apache-maven-%[2]s-bin.tar.gz"
 	mavenPath           = "/usr/local/maven"
 )
 
@@ -51,14 +51,13 @@ func detectFn(ctx *gcp.Context) (gcp.DetectResult, error) {
 }
 
 func buildFn(ctx *gcp.Context) error {
-
 	addJvmConfig(ctx)
 
 	var mvn string
 	if ctx.FileExists("mvnw") {
 		mvn = "./mvnw"
 	} else {
-		if !mvnInstalled() {
+		if needInstallMaven() {
 			if err := installMaven(ctx); err != nil {
 				return fmt.Errorf("installing Maven: %w", err)
 			}
@@ -117,30 +116,44 @@ func addJvmConfig(ctx *gcp.Context) {
 	}
 }
 
-func mvnInstalled() bool {
+func needInstallMaven() bool {
 	if version := os.Getenv(env.MavenVersion); version != "" && version != defaultMavenVersion {
-		return false
+		return true
 	}
-	return true
+
+	if url := os.Getenv(env.MavenURL); url != "" {
+		return true
+	}
+
+	return false
 }
 
 // installMaven installs Maven
 func installMaven(ctx *gcp.Context) error {
-
-	mavenVersion := os.Getenv(env.MavenVersion)
-	// Download and install maven in layer.
-	ctx.Logf("Installing Maven v%s", mavenVersion)
-	archiveURL := fmt.Sprintf(mavenURL, mavenVersion)
-	if code := ctx.HTTPStatus(archiveURL); code != http.StatusOK {
-		return gcp.UserErrorf("Maven version %s does not exist at %s (status %d).", mavenVersion, archiveURL, code)
+	var mavenURL string
+	if url := os.Getenv(env.MavenURL); url != "" {
+		mavenURL = url
+	} else {
+		mavenVersion := os.Getenv(env.MavenVersion)
+		majorMavenVersion := strings.Split(mavenVersion, ".")[0]
+		mavenURL = fmt.Sprintf(defaultMavenURL, majorMavenVersion, mavenVersion)
 	}
-	command := fmt.Sprintf("curl --fail --show-error --silent --location --retry 3 %s | tar xz --directory %s", archiveURL, mavenPath)
+
+	// Download and install maven in layer.
+	ctx.Logf("Installing Maven from %s", mavenURL)
+	if code := ctx.HTTPStatus(mavenURL); code != http.StatusOK {
+		return gcp.UserErrorf("Maven does not exist at %s (status %d).", mavenURL, code)
+	}
+	// Download
+	command := fmt.Sprintf("curl --fail --show-error --silent --location --retry 3 %s | tar xz --directory %s", mavenURL, mavenPath)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
-	command = fmt.Sprintf("rm -rf %s/current", mavenPath)
+
+	// delete the old maven
+	command = fmt.Sprintf("rm -rf %s/current %s/apache-maven-%s", mavenPath, mavenPath, defaultMavenVersion)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
-	command = fmt.Sprintf("ln -s %s/apache-maven-%s %s/current", mavenPath, mavenVersion, mavenPath)
-	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
-	command = fmt.Sprintf("rm -rf %s/apache-maven-%s", mavenPath, defaultMavenVersion)
+
+	// link the new maven to current
+	command = fmt.Sprintf("ln -s $(find /usr/local/maven/ -type d -name \"apache-maven*\") %s/current", mavenPath)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
 
 	return nil

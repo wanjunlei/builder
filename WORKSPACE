@@ -292,9 +292,3 @@ go_repository(
     version = "v1.23.0",
 )
 
-go_repository(
-    name = "com_github_beevik_etree",
-    importpath = "github.com/beevik/etree",
-    sum = "h1:T0xke/WvNtMoCqgzPhkX2r4rjY3GDZFi+FjpRZY2Jbs=",
-    version = "v1.1.0",
-)

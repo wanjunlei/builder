@@ -8,6 +8,7 @@ build_image=""
 run_image=""
 out_image=""
 push_image=false
+framework_version=1.1.0-SNAPSHOT
 
 build_java() {
   VERSION_ARRAY=(11 16 17 18)
@@ -32,16 +33,18 @@ build_java() {
   sed -i -e "s/< REGISTRY >/${docker_registry}/g" "$dir"/BUILD.bazel
   sed -i -e "s/< REGISTRY >/${docker_registry}/g" "$dir"/stack/build.sh
 
+  sed -i -e "s/< FRAMEWORK_VERSION >/${framework_version}/g" "$dir"/stack/build.sh
+
   if [[ -n "$run_image" ]]; then
     sed -ri "s/(run-image = )[^\n]*/\1\"${run_image}\"/" "$dir"/builder.toml
   else
-    run_image="$docker_registry"/buildpacks-java"$java_version"-run:v1
+    run_image="$docker_registry"/buildpacks-java"$java_version"-run:v2
   fi
 
   if [[ -n "$build_image" ]]; then
     sed -ri "s/(build-image = )[^\n]*/\1\"${build_image}\"/" "$dir"/builder.toml
   else
-    build_image="$docker_registry"/buildpacks-java"$java_version"-build:v1
+    build_image="$docker_registry"/buildpacks-java"$java_version"-build:v2
   fi
 
   if [[ -n "$out_image" ]]; then
@@ -72,7 +75,7 @@ build_java() {
   rm -rf "$dir"
 }
 
-TEMP=$(getopt -o an:p --long all,with-stack,java-version:,docker-registry:,create-builder-only,build-image:,run-image:,out-image:,push-image \
+TEMP=$(getopt -o an:p --long all,with-stack,java-version:,docker-registry:,create-builder-only,build-image:,run-image:,out-image:,push-image,framework-version: \
   -- "$@")
 
 # Note the quotes around `$TEMP`: they are essential!
@@ -109,6 +112,10 @@ while true; do
     ;;
   --push-image)
     push_image=true
+    shift
+    ;;
+  --framework-version)
+    framework_version=$2
     shift
     ;;
   --)

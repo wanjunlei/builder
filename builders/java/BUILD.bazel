@@ -14,6 +14,7 @@ builder(
             "//cmd/java/gradle:gradle.tgz",
             "//cmd/java/maven:maven.tgz",
             "//cmd/java/skywalking:skywalking.tgz",
+            "//cmd/java/opentelemetry:opentelemetry.tgz",
         ],
     },
     image = "< REGISTRY >/builder-java:v2-< JAVA_VERSION >",

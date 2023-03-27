@@ -9,8 +9,8 @@ hack/build.sh java --with-stack --java-version < java_version > --docker-registr
 This command will create three image:
 
 ```shell
-< REGISTRY >/buildpacks-java< java_version >-run:v1
-< REGISTRY >/buildpacks-java< java_version >-build:v1
+< REGISTRY >/buildpacks-java< java_version >-run:v2
+< REGISTRY >/buildpacks-java< java_version >-build:v2
 < REGISTRY >/builder-java:v2-< java_version >
 ```
 

@@ -108,31 +108,36 @@ const (
 
 	// MavenVersion is the version of maven. If not set, the maven version will be 3.8.5.
 	MavenVersion = "MVN_VERSION"
+	// MavenURL is the url of the apache maven.
+	MavenURL = "MVN_URL"
+
 	// GradleVersion is the version of gradle. If not set, the maven version will be 7.4.2.
 	GradleVersion = "GRADLE_VERSION"
-	// FunctionFrameworkJar is the path of function framework jar, can be a url or a local path.
-	FunctionFrameworkJar        = "FUNCTION_FRAMEWORK"
-	MavenRepository             = "MAVEN_REPOSITORY"
-	FunctionFrameworkGroup      = "FUNCTION_FRAMEWORK_GROUP"
-	FunctionFrameworkArtifactID = "FUNCTION_FRAMEWORK_ARTIFCATID"
-	FunctionFrameworkVersion    = "FUNCTION_FRAMEWORK_VERSION"
+	// GradleURL is the url of the gradle.
+	GradleURL = "Gradle_URL"
 
 	// FunctionClasspath is the classpath for java where to load the function jar.
 	FunctionClasspath = "FUNCTION_CLASSPATH"
+
+	// DisableOpentelemetry set to true will delete the opentelemetry java agent,
+	// and the application will run without opentelemetry.
+	DisableOpentelemetry = "OTEL_DISABLE"
+	// OpentelemetryJavaAgentVersion is the version of opentelemetry java agent. The default is 1.23.0.
+	OpentelemetryJavaAgentVersion = "OTEL_JAVA_AGENT_VERSION"
+	// OpentelemetryJavaAgentURL is the url of the skywalking java agent.
+	OpentelemetryJavaAgentURL = "OTEL_JAVA_AGENT_URL"
 
 	// DisableSkywalking set to true will delete the skywalking java agent,
 	// and the application will run without skywalking.
 	DisableSkywalking = "SW_DISABLE"
 	// SkywalkingJavaAgentVersion is the version of skywalking java agent.
 	// The default is 8.14.0, support version is 8.8.0+.
-	// If another version is set, it will be download from https://dlcdn.apache.org/skywalking/java-agent/.
 	SkywalkingJavaAgentVersion = "SW_JAVA_AGENT_VERSION"
 	// SkywalkingJavaAgentURL is the url of the skywalking java agent.
 	// The url must point to a tar file.
 	SkywalkingJavaAgentURL = "SW_JAVA_AGENT_URL"
-	// SkywalkingJavaAgentPath is the relative path of the skywalking-agent.jar.
-	SkywalkingJavaAgentPath = "SW_JAVA_AGENT_PATH"
-	SkywalkingJavaAgentArg  = "SW_JAVA_AGENT_ARG"
+
+	JavaAgentPath = "JAVA_AGENT_PATH"
 )
 
 // IsDebugMode returns true if the buildpack debug mode is enabled.

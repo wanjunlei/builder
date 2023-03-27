@@ -5,7 +5,6 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v1.1.0
-	github.com/beevik/etree v1.1.0
 	github.com/blang/semver v3.5.2-0.20180723201105-3c1074078d32+incompatible
 	github.com/buildpacks/libcnb v1.25.4
 	github.com/onsi/gomega v1.19.0 // indirect

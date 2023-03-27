@@ -16,7 +16,7 @@ ARG from_image
 FROM ${from_image}
 
 ARG cnb_uid=${CNB_USER_ID}
-ENV cnb_gid=${CNB_GROUP_ID}
+ARG cnb_gid=${CNB_GROUP_ID}
 
 ARG maven_version=3.8.7
 ARG gradle_version=7.4.2
@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unzip \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ADD https://dlcdn.apache.org/maven/maven-3/${maven_version}/binaries/apache-maven-${maven_version}-bin.tar.gz /
+ADD https://archive.apache.org/dist/maven/maven-3/${maven_version}/binaries/apache-maven-${maven_version}-bin.tar.gz /
 ADD https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip  /
 
 RUN mkdir /usr/local/maven && \

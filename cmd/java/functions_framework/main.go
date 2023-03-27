@@ -25,17 +25,11 @@ import (
 	"github.com/GoogleCloudPlatform/buildpacks/pkg/devmode"
 	"github.com/GoogleCloudPlatform/buildpacks/pkg/env"
 	gcp "github.com/GoogleCloudPlatform/buildpacks/pkg/gcpbuildpack"
-	"github.com/beevik/etree"
-	"github.com/buildpacks/libcnb"
 )
 
 const (
-	layerName = "functions-framework"
-
-	defaultMavenRepository     = "https://repo.maven.apache.org/maven2/"
-	defaultFrameworkGroup      = "dev.openfunction.functions"
-	defaultFrameworkArtifactID = "functions-framework-invoker"
-	defaultFrameworkVersion    = "1.0.0"
+	layerName            = "functions-framework"
+	frameworkInvokerPath = "/usr/local/openfunction/functions-framework.jar"
 )
 
 func main() {
@@ -52,10 +46,6 @@ func detectFn(_ *gcp.Context) (gcp.DetectResult, error) {
 func buildFn(ctx *gcp.Context) error {
 	layer := ctx.Layer(layerName)
 	layer.Launch = true
-
-	if err := installFunctionsFramework(ctx, layer); err != nil {
-		return err
-	}
 
 	classpath, err := classpath(ctx)
 	if err != nil {
@@ -74,12 +64,10 @@ func buildFn(ctx *gcp.Context) error {
 	launcherTarget := filepath.Join(layer.Path, "launch.sh")
 	createLauncher(ctx, launcherSource, launcherTarget)
 	cmd := []string{launcherTarget, "java"}
-	if disable, ok := os.LookupEnv(env.DisableSkywalking); !ok || disable == "true" {
-		if arg, _ := os.LookupEnv(env.SkywalkingJavaAgentArg); arg != "" {
-			cmd = append(cmd, arg)
-		}
+	if agent, _ := os.LookupEnv(env.JavaAgentPath); agent != "" {
+		cmd = append(cmd, "-javaagent:"+agent)
 	}
-	cmd = append(cmd, "-jar", filepath.Join(layer.Path, "functions-framework.jar"))
+	cmd = append(cmd, "-jar", frameworkInvokerPath)
 	ctx.AddDefaultWebProcess(cmd, true)
 
 	return nil
@@ -210,84 +198,4 @@ func gradleClasspath(ctx *gcp.Context) (string, error) {
 	// The Functions Framework understands "*" to mean every jar file in that directory.
 	// So this classpath consists of the just-built jar and all of the dependency jars.
 	return fmt.Sprintf("%s:build/_javaFunctionDependencies/*", jarName), nil
-}
-
-func installFunctionsFramework(ctx *gcp.Context, layer *libcnb.Layer) error {
-
-	ffName := filepath.Join(layer.Path, "functions-framework.jar")
-	if jarPath, ok := os.LookupEnv(env.FunctionFrameworkJar); ok {
-		if strings.HasPrefix(jarPath, "http") || strings.HasPrefix(jarPath, "https") {
-			return downloadFramework(ctx, ffName, jarPath)
-		} else {
-			_, err := ctx.ExecWithErr([]string{"bash", "-c", fmt.Sprintf("mv %s %s", jarPath, ffName)})
-			return err
-		}
-	}
-
-	mavenRepository := os.Getenv(env.MavenRepository)
-	if mavenRepository == "" {
-		mavenRepository = defaultMavenRepository
-	}
-
-	frameworkGroup := os.Getenv(env.FunctionFrameworkGroup)
-	if frameworkGroup == "" {
-		frameworkGroup = defaultFrameworkGroup
-	}
-	frameworkGroup = strings.ReplaceAll(frameworkGroup, ".", "/")
-
-	frameworkArtifactID := os.Getenv(env.FunctionFrameworkArtifactID)
-	if frameworkArtifactID == "" {
-		frameworkArtifactID = defaultFrameworkArtifactID
-	}
-
-	frameworkVersion := os.Getenv(env.FunctionFrameworkVersion)
-	if frameworkVersion == "" {
-		frameworkVersion = defaultFrameworkVersion
-	}
-
-	artifact := fmt.Sprintf("%s-jar-with-dependencies.jar", frameworkArtifactID)
-	version := frameworkVersion
-	if strings.HasSuffix(frameworkVersion, "-SNAPSHOT") {
-		var err error
-		version, err = getSnapshotVersion(ctx, mavenRepository, frameworkGroup, frameworkArtifactID, frameworkVersion)
-		if err != nil {
-			return err
-		}
-	}
-
-	artifact = fmt.Sprintf("%s-%s-jar-with-dependencies.jar", frameworkArtifactID, version)
-	url := fmt.Sprintf("%s/%s/%s/%s/%s", mavenRepository, frameworkGroup, frameworkArtifactID, frameworkVersion, artifact)
-
-	return downloadFramework(ctx, ffName, strings.ReplaceAll(url, "//", "/"))
-}
-
-func downloadFramework(ctx *gcp.Context, name, url string) error {
-	_, err := ctx.ExecWithErr([]string{"curl", "--silent", "--fail", "--show-error", "--output", name, url})
-	if err != nil {
-		return gcp.InternalErrorf("fetching functions framework jar[%s]: %s", url, err.Error())
-	}
-
-	ctx.Logf("fetching functions framework jar from %s", url)
-
-	return nil
-}
-
-func getSnapshotVersion(ctx *gcp.Context, mavenRepository, frameworkGroup, frameworkArtifactID, frameworkVersion string) (string, error) {
-
-	url := fmt.Sprintf("%s/%s/%s/%s/maven-metadata.xml", mavenRepository, frameworkGroup, frameworkArtifactID, frameworkVersion)
-	if _, err := ctx.ExecWithErr([]string{"curl", "--silent", "--fail", "--show-error", "--output", "/tmp/maven-metadata.xml", url}); err != nil {
-		return "", gcp.InternalErrorf("fetching functions framework metadata[%s]: %s", url, err.Error())
-	}
-
-	doc := etree.NewDocument()
-	if err := doc.ReadFromFile("/tmp/maven-metadata.xml"); err != nil {
-		return "", gcp.InternalErrorf("parse functions framework metadata[%s]: %s", url, err.Error())
-	}
-
-	element := doc.FindElement("//metadata/versioning/snapshotVersions/snapshotVersion[classifier='jar-with-dependencies'][extension='jar']/value")
-	if element != nil {
-		return element.Text(), nil
-	}
-
-	return "", nil
 }

@@ -13,8 +13,12 @@ description = "Ubuntu 18 base image with buildpacks for Nodejs"
   uri = "java/maven.tgz"
 
 [[buildpacks]]
-id = "openfunction.java.skywalking"
-uri = "java/skywalking.tgz"
+  id = "openfunction.java.skywalking"
+  uri = "java/skywalking.tgz"
+
+[[buildpacks]]
+  id = "openfunction.java.opentelemetry"
+  uri = "java/opentelemetry.tgz"
 
 [[buildpacks]]
   id = "google.java.clear_source"
@@ -37,6 +41,9 @@ uri = "java/skywalking.tgz"
     id = "openfunction.java.skywalking"
 
   [[order.group]]
+    id = "openfunction.java.opentelemetry"
+
+  [[order.group]]
     id = "openfunction.java.functions-framework"
 
   [[order.group]]
@@ -55,6 +62,9 @@ uri = "java/skywalking.tgz"
     id = "openfunction.java.skywalking"
 
   [[order.group]]
+    id = "openfunction.java.opentelemetry"
+
+  [[order.group]]
     id = "openfunction.java.functions-framework"
 
   [[order.group]]
@@ -67,8 +77,8 @@ uri = "java/skywalking.tgz"
 # Currently built with //builders/java/stack/stack:build.
 [stack]
   id = "openfunction.java< JAVA_VERSION >"
-  build-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:v1"
-  run-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:v1"
+  build-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:v2"
+  run-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:v2"
 
 [lifecycle]
   version = "0.13.2"

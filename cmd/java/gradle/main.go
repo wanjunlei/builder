@@ -30,7 +30,7 @@ import (
 
 const (
 	defaultGradleVersion = "7.4.2"
-	gradleDistroURL      = "https://services.gradle.org/distributions/gradle-%s-bin.zip"
+	defaultGradleURL     = "https://services.gradle.org/distributions/gradle-%s-bin.zip"
 	gradlePath           = "/usr/local/gradle"
 )
 
@@ -49,12 +49,11 @@ func detectFn(ctx *gcp.Context) (gcp.DetectResult, error) {
 }
 
 func buildFn(ctx *gcp.Context) error {
-
 	var gradle string
 	if ctx.FileExists("gradlew") {
 		gradle = "./gradlew"
 	} else {
-		if !gradleInstalled() {
+		if needToInstallGradle() {
 			if err := installGradle(ctx); err != nil {
 				return fmt.Errorf("installing Gradle: %w", err)
 			}
@@ -82,44 +81,54 @@ func buildFn(ctx *gcp.Context) error {
 	return nil
 }
 
-func gradleInstalled() bool {
+func needToInstallGradle() bool {
 	if version := os.Getenv(env.GradleVersion); version != "" && version != defaultGradleVersion {
-		return false
+		return true
 	}
-	return true
+
+	if url := os.Getenv(env.GradleURL); url != "" {
+		return true
+	}
+
+	return false
 }
 
 // installGradle installs Gradle and returns the path of the gradle binary
 func installGradle(ctx *gcp.Context) error {
-
-	gradleVersion := os.Getenv(env.GradleVersion)
-	downloadURL := fmt.Sprintf(gradleDistroURL, gradleVersion)
-	// Download and install gradle in layer.
-	ctx.Logf("Installing Gradle v%s", gradleVersion)
-	if code := ctx.HTTPStatus(downloadURL); code != http.StatusOK {
-		return fmt.Errorf("gradle version %s does not exist at %s (status %d)", gradleVersion, downloadURL, code)
+	var gradleURL string
+	if url := os.Getenv(env.GradleURL); url != "" {
+		gradleURL = url
+	} else {
+		gradleVersion := os.Getenv(env.MavenVersion)
+		gradleURL = fmt.Sprintf(defaultGradleURL, gradleVersion)
 	}
 
-	tmpDir := "/tmp"
+	// Download and install gradle in layer.
+	ctx.Logf("Installing Gradle from %s", gradleURL)
+	if code := ctx.HTTPStatus(gradleURL); code != http.StatusOK {
+		return fmt.Errorf("gradle does not exist at %s (status %d)", gradleURL, code)
+	}
+
+	tmpDir := "/tmp/gradle/"
 	gradleZip := filepath.Join(tmpDir, "gradle.zip")
-	defer ctx.RemoveAll(gradleZip)
-
-	curl := fmt.Sprintf("curl --fail --show-error --silent --location --retry 3 %s --output %s", downloadURL, gradleZip)
+	defer ctx.RemoveAll(tmpDir)
+	// download gradle
+	curl := fmt.Sprintf("curl --fail --show-error --silent --location --retry 3 %s --output %s", gradleURL, gradleZip)
 	ctx.Exec([]string{"bash", "-c", curl}, gcp.WithUserAttribution)
-
+	// unzip
 	unzip := fmt.Sprintf("unzip -q %s -d %s", gradleZip, tmpDir)
 	ctx.Exec([]string{"bash", "-c", unzip}, gcp.WithUserAttribution)
+	// delete the zip file
+	ctx.Exec([]string{"bash", "-c", fmt.Sprintf("rm -rf %s", gradleZip)}, gcp.WithUserAttribution)
 
-	gradleExtracted := filepath.Join(tmpDir, fmt.Sprintf("gradle-%s", gradleVersion))
-	defer ctx.RemoveAll(gradleExtracted)
-	install := fmt.Sprintf("mv %s %s", gradleExtracted, gradlePath)
-	ctx.Exec([]string{"bash", "-c", install}, gcp.WithUserTimingAttribution)
+	ctx.Exec([]string{"bash", "-c", fmt.Sprintf("mv %s* %s", tmpDir, gradlePath)}, gcp.WithUserTimingAttribution)
 
-	command := fmt.Sprintf("rm -rf %s/current", gradlePath)
+	// delete the old gradle
+	command := fmt.Sprintf("rm -rf %s/current %s/gradle-%s", gradlePath, gradlePath, defaultGradleVersion)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
-	command = fmt.Sprintf("ln -s %s/apache-maven-%s %s/current", gradlePath, gradleVersion, gradlePath)
-	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
-	command = fmt.Sprintf("rm -rf %s/apache-maven-%s", gradlePath, defaultGradleVersion)
+
+	// link the new maven to current
+	command = fmt.Sprintf("ln -s $(find /usr/local/gradle/ -type d -name \"gradle*\") %s/current", gradlePath)
 	ctx.Exec([]string{"bash", "-c", command}, gcp.WithUserAttribution)
 
 	return nil

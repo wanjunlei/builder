@@ -1,16 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
 
-# Buildpack for the Java functions framework copy.
+# Buildpack for Maven.
 load("//tools:defs.bzl", "buildpack")
 
 licenses(["notice"])
 
 buildpack(
-    name = "functions_framework",
-    srcs = [
-        "extra_tasks.gradle",
-        "launch.sh",
-    ],
+    name = "opentelemetry",
     executables = [
         ":main",
     ],
@@ -32,15 +28,7 @@ go_binary(
         "//pkg/devmode",
         "//pkg/env",
         "//pkg/gcpbuildpack",
+        "//pkg/java",
         "@com_github_buildpacks_libcnb//:go_default_library",
     ],
-)
-
-go_test(
-    name = "main_test",
-    size = "small",
-    srcs = ["main_test.go"],
-    embed = [":main"],
-    rundir = ".",
-    deps = ["//pkg/gcpbuildpack"],
 )
