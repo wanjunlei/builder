@@ -13,14 +13,6 @@ description = "Ubuntu 18 base image with buildpacks for Nodejs"
   uri = "java/maven.tgz"
 
 [[buildpacks]]
-  id = "openfunction.java.skywalking"
-  uri = "java/skywalking.tgz"
-
-[[buildpacks]]
-  id = "openfunction.java.opentelemetry"
-  uri = "java/opentelemetry.tgz"
-
-[[buildpacks]]
   id = "google.java.clear_source"
   uri = "java/clear_source.tgz"
 
@@ -38,12 +30,6 @@ description = "Ubuntu 18 base image with buildpacks for Nodejs"
     id = "openfunction.java.maven"
 
   [[order.group]]
-    id = "openfunction.java.skywalking"
-
-  [[order.group]]
-    id = "openfunction.java.opentelemetry"
-
-  [[order.group]]
     id = "openfunction.java.functions-framework"
 
   [[order.group]]
@@ -57,12 +43,6 @@ description = "Ubuntu 18 base image with buildpacks for Nodejs"
   [[order.group]]
     id = "openfunction.java.gradle"
     optional = true
-
-  [[order.group]]
-    id = "openfunction.java.skywalking"
-
-  [[order.group]]
-    id = "openfunction.java.opentelemetry"
 
   [[order.group]]
     id = "openfunction.java.functions-framework"

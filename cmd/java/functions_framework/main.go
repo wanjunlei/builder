@@ -63,11 +63,7 @@ func buildFn(ctx *gcp.Context) error {
 	launcherSource := filepath.Join(ctx.BuildpackRoot(), "launch.sh")
 	launcherTarget := filepath.Join(layer.Path, "launch.sh")
 	createLauncher(ctx, launcherSource, launcherTarget)
-	cmd := []string{launcherTarget, "java"}
-	if agent, _ := os.LookupEnv(env.JavaAgentPath); agent != "" {
-		cmd = append(cmd, "-javaagent:"+agent)
-	}
-	cmd = append(cmd, "-jar", frameworkInvokerPath)
+	cmd := []string{launcherTarget, "java", "-jar", frameworkInvokerPath}
 	ctx.AddDefaultWebProcess(cmd, true)
 
 	return nil

@@ -118,26 +118,6 @@ const (
 
 	// FunctionClasspath is the classpath for java where to load the function jar.
 	FunctionClasspath = "FUNCTION_CLASSPATH"
-
-	// DisableOpentelemetry set to true will delete the opentelemetry java agent,
-	// and the application will run without opentelemetry.
-	DisableOpentelemetry = "OTEL_DISABLE"
-	// OpentelemetryJavaAgentVersion is the version of opentelemetry java agent. The default is 1.23.0.
-	OpentelemetryJavaAgentVersion = "OTEL_JAVA_AGENT_VERSION"
-	// OpentelemetryJavaAgentURL is the url of the skywalking java agent.
-	OpentelemetryJavaAgentURL = "OTEL_JAVA_AGENT_URL"
-
-	// DisableSkywalking set to true will delete the skywalking java agent,
-	// and the application will run without skywalking.
-	DisableSkywalking = "SW_DISABLE"
-	// SkywalkingJavaAgentVersion is the version of skywalking java agent.
-	// The default is 8.14.0, support version is 8.8.0+.
-	SkywalkingJavaAgentVersion = "SW_JAVA_AGENT_VERSION"
-	// SkywalkingJavaAgentURL is the url of the skywalking java agent.
-	// The url must point to a tar file.
-	SkywalkingJavaAgentURL = "SW_JAVA_AGENT_URL"
-
-	JavaAgentPath = "JAVA_AGENT_PATH"
 )
 
 // IsDebugMode returns true if the buildpack debug mode is enabled.
