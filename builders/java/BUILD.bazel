@@ -15,7 +15,7 @@ builder(
             "//cmd/java/maven:maven.tgz",
         ],
     },
-    image = "< REGISTRY >/builder-java:v2-< JAVA_VERSION >",
+    image = "< REGISTRY >/builder-java:v2-< JAVA_VERSION >-sw8",
     visibility = [
         "//builders/java11/acceptance:__pkg__",
     ],

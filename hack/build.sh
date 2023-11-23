@@ -35,19 +35,19 @@ build_java() {
   if [[ -n "$run_image" ]]; then
     sed -ri "s/(run-image = )[^\n]*/\1\"${run_image}\"/" "$dir"/builder.toml
   else
-    run_image="$docker_registry"/buildpacks-java"$java_version"-run:v1
+    run_image="$docker_registry"/buildpacks-java"$java_version"-run:v1-sw8
   fi
 
   if [[ -n "$build_image" ]]; then
     sed -ri "s/(build-image = )[^\n]*/\1\"${build_image}\"/" "$dir"/builder.toml
   else
-    build_image="$docker_registry"/buildpacks-java"$java_version"-build:v1
+    build_image="$docker_registry"/buildpacks-java"$java_version"-build:v1-sw8
   fi
 
   if [[ -n "$out_image" ]]; then
     sed -ri "s/(image = )[^\n]*/\1\"${out_image}\"/" "$dir"/BUILD.bazel
   else
-    out_image="$docker_registry"/builder-java:v2-"$java_version"
+    out_image="$docker_registry"/builder-java:v2-"$java_version"-sw8
   fi
 
   # only create a builder directory, not build image

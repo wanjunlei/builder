@@ -46,8 +46,8 @@ docker build --build-arg "from_image=ibm-semeru-runtimes:open-< JAVA_VERSION >-j
 echo "> Building base build image"
 docker build --build-arg "from_image=ibm-semeru-runtimes:open-< JAVA_VERSION >-jdk" -t "java< JAVA_VERSION >-build" - < "${DIR}/parent.Dockerfile"
 echo "> Building run imager"
-docker build --build-arg "from_image=java< JAVA_VERSION >-run" -t "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:$TAG" - < "${DIR}/run.Dockerfile"
+docker build --build-arg "from_image=java< JAVA_VERSION >-run" -t "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:$TAG-sw8" - < "${DIR}/run.Dockerfile"
 #docker push < REGISTRY >/buildpacks-java< JAVA_VERSION >-run:$TAG
 echo "> Building build imager"
-docker build --build-arg "from_image=java< JAVA_VERSION >-build" -t "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:$TAG" -f "${DIR}/build.Dockerfile" "${TEMP}"
+docker build --build-arg "from_image=java< JAVA_VERSION >-build" -t "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:$TAG-sw8" -f "${DIR}/build.Dockerfile" "${TEMP}"
 #docker push < REGISTRY >/buildpacks-java< JAVA_VERSION >-build:$TAG

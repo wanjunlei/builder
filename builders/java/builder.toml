@@ -57,8 +57,8 @@ description = "Ubuntu 18 base image with buildpacks for Nodejs"
 # Currently built with //builders/java/stack/stack:build.
 [stack]
   id = "openfunction.java< JAVA_VERSION >"
-  build-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:v1"
-  run-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:v1"
+  build-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-build:v1-sw8"
+  run-image = "< REGISTRY >/buildpacks-java< JAVA_VERSION >-run:v1-sw8"
 
 [lifecycle]
   version = "0.13.2"

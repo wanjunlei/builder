@@ -35,7 +35,7 @@ const (
 	defaultMavenSnapshotRepository = "https://s01.oss.sonatype.org/content/repositories/snapshots"
 	defaultFrameworkGroup          = "dev.openfunction.functions"
 	defaultFrameworkArtifactID     = "functions-framework-invoker"
-	defaultFrameworkVersion        = "1.2.0"
+	defaultFrameworkVersion        = "1.3.0-SNAPSHOT"
 )
 
 func main() {
@@ -73,7 +73,8 @@ func buildFn(ctx *gcp.Context) error {
 	launcherSource := filepath.Join(ctx.BuildpackRoot(), "launch.sh")
 	launcherTarget := filepath.Join(layer.Path, "launch.sh")
 	createLauncher(ctx, launcherSource, launcherTarget)
-	ctx.AddDefaultWebProcess([]string{launcherTarget, "java", "-jar", filepath.Join(layer.Path, "functions-framework.jar")}, true)
+	agent := "-javaagent:/usr/local/skywalking-agent/skywalking-agent.jar"
+	ctx.AddDefaultWebProcess([]string{launcherTarget, "java", agent, "-jar", filepath.Join(layer.Path, "functions-framework.jar")}, true)
 
 	return nil
 }
